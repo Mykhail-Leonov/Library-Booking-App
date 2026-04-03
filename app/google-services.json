@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "332279196663",
+    "project_id": "library-booking-app-faecf",
+    "storage_bucket": "library-booking-app-faecf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:332279196663:android:86cdbcf45240fb06701cf2",
+        "android_client_info": {
+          "package_name": "com.example.librarybooking"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDslx3deLot2Tm_iP78R4qIGYLNiOlkoqE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
