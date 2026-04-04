@@ -8,11 +8,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,14 +22,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.example.librarybooking.State
 
 @Composable
 fun LoginScreen(
+    authState: State<Unit>,
     onGoToRegister: () -> Unit,
+    onLoginClick: (String, String) -> Unit,
     onLoginSuccess: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    LaunchedEffect(authState) {
+        if (authState is State.Success) {
+            onLoginSuccess()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -43,7 +54,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Log in with your Student ID to manage your booth bookings.",
+            text = "Log in with your Student e-mail to manage your booth bookings.",
             style = MaterialTheme.typography.bodyMedium
         )
 
@@ -63,6 +74,8 @@ fun LoginScreen(
             style = MaterialTheme.typography.bodyMedium
         )
 
+        Spacer(modifier = Modifier.height(12.dp))
+
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -81,7 +94,11 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = onLoginSuccess,
+            onClick = {
+                if (email.isNotBlank() && password.isNotBlank()) {
+                    onLoginClick(email.trim(), password.trim())
+                }
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Login")
@@ -91,6 +108,17 @@ fun LoginScreen(
 
         TextButton(onClick = onGoToRegister) {
             Text("Create account")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        when (authState) {
+            is State.Loading -> CircularProgressIndicator()
+            is State.Error -> Text(
+                text = authState.message,
+                color = MaterialTheme.colorScheme.error
+            )
+            else -> Unit
         }
     }
 }

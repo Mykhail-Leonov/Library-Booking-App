@@ -8,11 +8,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,16 +22,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.example.librarybooking.State
 
 @Composable
 fun RegisterScreen(
+    authState: State<Unit>,
     onGoToLogin: () -> Unit,
+    onRegisterClick: (String, String, String, String) -> Unit,
     onRegisterSuccess: () -> Unit
 ) {
     var fullName by remember { mutableStateOf("") }
     var studentId by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    LaunchedEffect(authState) {
+        if (authState is State.Success) {
+            onRegisterSuccess()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -74,6 +85,8 @@ fun RegisterScreen(
             style = MaterialTheme.typography.bodySmall
         )
 
+        Spacer(modifier = Modifier.height(12.dp))
+
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -87,6 +100,8 @@ fun RegisterScreen(
             text = "e.g. 12345678@bradfordcollege.ac.uk",
             style = MaterialTheme.typography.bodySmall
         )
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
             value = password,
@@ -106,7 +121,21 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = onRegisterSuccess,
+            onClick = {
+                when {
+                    fullName.isBlank() -> Unit
+                    studentId.length != 8 -> Unit
+                    email.isBlank() -> Unit
+                    !email.endsWith("@bradfordcollege.ac.uk") -> Unit
+                    password.length < 8 -> Unit
+                    else -> onRegisterClick(
+                        fullName.trim(),
+                        studentId.trim(),
+                        email.trim(),
+                        password.trim()
+                    )
+                }
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Register")
@@ -114,10 +143,19 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-
-
         TextButton(onClick = onGoToLogin) {
             Text("Go to Login")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        when (authState) {
+            is State.Loading -> CircularProgressIndicator()
+            is State.Error -> Text(
+                text = authState.message,
+                color = MaterialTheme.colorScheme.error
+            )
+            else -> Unit
         }
     }
 }

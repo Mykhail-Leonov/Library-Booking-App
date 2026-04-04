@@ -1,20 +1,24 @@
 package com.example.librarybooking
 
-import com.example.librarybooking.ui.booking.BookingScreen
-import com.example.librarybooking.ui.booking.EditBookingScreen
-import com.example.librarybooking.ui.home.HomeScreen
-import com.example.librarybooking.ui.profile.ProfileScreen
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.librarybooking.ui.auth.AuthView
 import com.example.librarybooking.ui.auth.LoginScreen
 import com.example.librarybooking.ui.auth.RegisterScreen
+import com.example.librarybooking.ui.booking.BookingScreen
+import com.example.librarybooking.ui.booking.EditBookingScreen
+import com.example.librarybooking.ui.home.HomeScreen
+import com.example.librarybooking.ui.profile.ProfileScreen
 import com.example.librarybooking.ui.theme.LibraryBookingAppTheme
-import android.net.Uri
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,28 +34,46 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
+    val authView: AuthView = viewModel()
+    val authState by authView.authState.collectAsState()
+
+    val startDestination = if (authView.isLoggedIn()) "home" else "login"
 
     NavHost(
         navController = navController,
-        startDestination = "login"
+        startDestination = startDestination
     ) {
         composable("login") {
             LoginScreen(
+                authState = authState,
                 onGoToRegister = {
+                    authView.resetState()
                     navController.navigate("register")
                 },
+                onLoginClick = { email, password ->
+                    authView.login(email, password)
+                },
                 onLoginSuccess = {
-                    navController.navigate("home")
+                    authView.resetState()
+                    navController.navigate("home") {
+                        popUpTo("login") { inclusive = true }
+                    }
                 }
             )
         }
 
         composable("register") {
             RegisterScreen(
+                authState = authState,
                 onGoToLogin = {
+                    authView.resetState()
                     navController.popBackStack()
                 },
+                onRegisterClick = { fullName, studentId, email, password ->
+                    authView.register(fullName, studentId, email, password)
+                },
                 onRegisterSuccess = {
+                    authView.resetState()
                     navController.navigate("login") {
                         popUpTo("login") { inclusive = true }
                     }
@@ -65,8 +87,9 @@ fun AppNavigation() {
                     navController.navigate("profile")
                 },
                 onLogout = {
+                    authView.logout()
                     navController.navigate("login") {
-                        popUpTo("login") { inclusive = true }
+                        popUpTo("home") { inclusive = true }
                     }
                 },
                 onOpenBooking = { boothName ->
