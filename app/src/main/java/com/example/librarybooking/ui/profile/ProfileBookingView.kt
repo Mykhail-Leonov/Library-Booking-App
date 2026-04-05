@@ -16,6 +16,9 @@ class ProfileBookingView : ViewModel() {
     private val _bookingState = MutableStateFlow<State<List<Booking>>>(State.Loading)
     val bookingState: StateFlow<State<List<Booking>>> = _bookingState
 
+    private val _cancelState = MutableStateFlow<State<Unit>>(State.Idle)
+    val cancelState: StateFlow<State<Unit>> = _cancelState
+
     init {
         loadBookings()
     }
@@ -31,5 +34,25 @@ class ProfileBookingView : ViewModel() {
                 onFailure = { State.Error(it.message ?: "Failed to load bookings") }
             )
         }
+    }
+
+    fun cancelBooking(bookingId: String) {
+        viewModelScope.launch {
+            _cancelState.value = State.Loading
+
+            val result = bookingService.cancelBooking(bookingId)
+
+            _cancelState.value = result.fold(
+                onSuccess = {
+                    loadBookings()
+                    State.Success(Unit)
+                },
+                onFailure = { State.Error(it.message ?: "Failed to cancel booking") }
+            )
+        }
+    }
+
+    fun resetCancelState() {
+        _cancelState.value = State.Idle
     }
 }

@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -35,6 +36,13 @@ fun ProfileScreen(
 
     val profileBookingView: ProfileBookingView = viewModel()
     val bookingState by profileBookingView.bookingState.collectAsState()
+    val cancelState by profileBookingView.cancelState.collectAsState()
+
+    LaunchedEffect(cancelState) {
+        if (cancelState is State.Success) {
+            profileBookingView.resetCancelState()
+        }
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -129,7 +137,9 @@ fun ProfileScreen(
                                 Spacer(modifier = Modifier.height(8.dp))
 
                                 OutlinedButton(
-                                    onClick = { },
+                                    onClick = {
+                                        profileBookingView.cancelBooking(booking.id)
+                                    },
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Text("Cancel Booking")
@@ -144,6 +154,21 @@ fun ProfileScreen(
         }
 
         item {
+            when (cancelState) {
+                is State.Loading -> {
+                    CircularProgressIndicator()
+                }
+
+                is State.Error -> {
+                    Text(
+                        text = (cancelState as State.Error).message,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
+                else -> Unit
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedButton(
