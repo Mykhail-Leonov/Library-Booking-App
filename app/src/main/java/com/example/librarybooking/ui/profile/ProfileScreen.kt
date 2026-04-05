@@ -1,12 +1,28 @@
 package com.example.librarybooking.ui.profile
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.librarybooking.State
+import com.example.librarybooking.models.Booking
 import com.example.librarybooking.models.User
 
 @Composable
@@ -17,62 +33,125 @@ fun ProfileScreen(
     val profileView: ProfileView = viewModel()
     val userState by profileView.userState.collectAsState()
 
-    Column(
+    val profileBookingView: ProfileBookingView = viewModel()
+    val bookingState by profileBookingView.bookingState.collectAsState()
+
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp)
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text(
-            text = "Profile",
-            style = MaterialTheme.typography.headlineMedium
-        )
+        item {
+            Text(
+                text = "Profile",
+                style = MaterialTheme.typography.headlineMedium
+            )
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-        when (userState) {
+            when (userState) {
+                is State.Loading -> {
+                    CircularProgressIndicator()
+                }
+
+                is State.Error -> {
+                    Text(
+                        text = (userState as State.Error).message,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
+                is State.Success -> {
+                    val user = (userState as State.Success<User>).data
+                    Text("Full Name: ${user.fullName}")
+                    Text("Student ID: ${user.studentId}")
+                    Text("Email: ${user.email}")
+                }
+
+                else -> Unit
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "My Bookings",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        when (bookingState) {
             is State.Loading -> {
-                CircularProgressIndicator()
+                item {
+                    CircularProgressIndicator()
+                }
             }
 
             is State.Error -> {
-                Text(
-                    text = (userState as State.Error).message,
-                    color = MaterialTheme.colorScheme.error
-                )
+                item {
+                    Text(
+                        text = (bookingState as State.Error).message,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
 
             is State.Success -> {
-                val user = (userState as State.Success<User>).data
+                val bookings = (bookingState as State.Success<List<Booking>>).data
 
-                Text("Name: ${user.fullName}")
-                Spacer(modifier = Modifier.height(8.dp))
+                if (bookings.isEmpty()) {
+                    item {
+                        Text("No bookings yet")
+                    }
+                } else {
+                    items(bookings) { booking ->
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    booking.boothName,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Text("Building: ${booking.building}")
+                                Text("Date: ${booking.date}")
+                                Text("Time: ${booking.timeSlot}")
 
-                Text("Student ID: ${user.studentId}")
-                Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(12.dp))
 
-                Text("Email: ${user.email}")
-                Spacer(modifier = Modifier.height(16.dp))
+                                Button(
+                                    onClick = onEditBooking,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("Edit Booking")
+                                }
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                OutlinedButton(
+                                    onClick = { },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("Cancel Booking")
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             else -> Unit
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Button(
-            onClick = onEditBooking,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Edit Booking")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = onBack,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Back")
+            OutlinedButton(
+                onClick = onBack,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Back")
+            }
         }
     }
 }

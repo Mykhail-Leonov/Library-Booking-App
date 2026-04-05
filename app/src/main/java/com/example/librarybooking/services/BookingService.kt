@@ -52,4 +52,24 @@ class BookingService {
             Result.failure(e)
         }
     }
+
+    suspend fun getCurrentUserBookings(): Result<List<Booking>> {
+        return try {
+            val uid = auth.currentUser?.uid
+                ?: return Result.failure(Exception("User not logged in"))
+
+            val snapshot = db.collection("bookings")
+                .whereEqualTo("userId", uid)
+                .get()
+                .await()
+
+            val bookings = snapshot.documents.mapNotNull { document ->
+                document.toObject(Booking::class.java)?.copy(id = document.id)
+            }.sortedBy { it.createdAt }
+
+            Result.success(bookings)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
