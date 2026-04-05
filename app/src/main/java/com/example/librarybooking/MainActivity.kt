@@ -113,14 +113,25 @@ fun AppNavigation() {
                 onBack = {
                     navController.popBackStack()
                 },
-                onEditBooking = {
-                    navController.navigate("edit_booking")
+                onEditBooking = { bookingId, boothName, date, timeSlot ->
+                    navController.navigate(
+                        "edit_booking/${Uri.encode(bookingId)}/${Uri.encode(boothName)}/${Uri.encode(date)}/${Uri.encode(timeSlot)}"
+                    )
                 }
             )
         }
 
-        composable("edit_booking") {
+        composable("edit_booking/{bookingId}/{boothName}/{date}/{timeSlot}") { backStackEntry ->
+            val bookingId = backStackEntry.arguments?.getString("bookingId") ?: ""
+            val boothName = backStackEntry.arguments?.getString("boothName") ?: ""
+            val date = backStackEntry.arguments?.getString("date") ?: ""
+            val timeSlot = backStackEntry.arguments?.getString("timeSlot") ?: ""
+
             EditBookingScreen(
+                bookingId = bookingId,
+                boothName = boothName,
+                currentDate = date,
+                currentTimeSlot = timeSlot,
                 onBack = {
                     navController.popBackStack()
                 }

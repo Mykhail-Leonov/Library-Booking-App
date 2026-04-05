@@ -29,7 +29,7 @@ import com.example.librarybooking.models.User
 @Composable
 fun ProfileScreen(
     onBack: () -> Unit,
-    onEditBooking: () -> Unit
+    onEditBooking: (String, String, String, String) -> Unit
 ) {
     val profileView: ProfileView = viewModel()
     val userState by profileView.userState.collectAsState()
@@ -128,7 +128,14 @@ fun ProfileScreen(
                                 Spacer(modifier = Modifier.height(12.dp))
 
                                 Button(
-                                    onClick = onEditBooking,
+                                    onClick = {
+                                        onEditBooking(
+                                            booking.id,
+                                            booking.boothName,
+                                            booking.date,
+                                            booking.timeSlot
+                                        )
+                                    },
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Text("Edit Booking")

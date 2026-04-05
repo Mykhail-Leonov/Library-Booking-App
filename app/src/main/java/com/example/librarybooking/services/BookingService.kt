@@ -17,7 +17,7 @@ class BookingService {
     ): Result<Unit> {
         return try {
             val uid = auth.currentUser?.uid
-                ?: return Result.failure(Exception("User is not logged in"))
+                ?: return Result.failure(Exception("User not logged in"))
 
             val userSnapshot = db.collection("users").document(uid).get().await()
             val userData = userSnapshot.data
@@ -56,7 +56,7 @@ class BookingService {
     suspend fun getCurrentUserBookings(): Result<List<Booking>> {
         return try {
             val uid = auth.currentUser?.uid
-                ?: return Result.failure(Exception("User is not logged in"))
+                ?: return Result.failure(Exception("User not logged in"))
 
             val snapshot = db.collection("bookings")
                 .whereEqualTo("userId", uid)
@@ -78,6 +78,28 @@ class BookingService {
             db.collection("bookings")
                 .document(bookingId)
                 .delete()
+                .await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateBooking(
+        bookingId: String,
+        date: String,
+        timeSlot: String
+    ): Result<Unit> {
+        return try {
+            db.collection("bookings")
+                .document(bookingId)
+                .update(
+                    mapOf(
+                        "date" to date,
+                        "timeSlot" to timeSlot
+                    )
+                )
                 .await()
 
             Result.success(Unit)
