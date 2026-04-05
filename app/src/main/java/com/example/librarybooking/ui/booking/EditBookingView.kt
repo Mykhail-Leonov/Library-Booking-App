@@ -15,8 +15,12 @@ class EditBookingView : ViewModel() {
     private val _editState = MutableStateFlow<State<Unit>>(State.Idle)
     val editState: StateFlow<State<Unit>> = _editState
 
+    private val _bookedSlotsState = MutableStateFlow<State<List<String>>>(State.Idle)
+    val bookedSlotsState: StateFlow<State<List<String>>> = _bookedSlotsState
+
     fun updateBooking(
         bookingId: String,
+        boothName: String,
         date: String,
         timeSlot: String
     ) {
@@ -25,6 +29,7 @@ class EditBookingView : ViewModel() {
 
             val result = bookingService.updateBooking(
                 bookingId = bookingId,
+                boothName = boothName,
                 date = date,
                 timeSlot = timeSlot
             )
@@ -32,6 +37,22 @@ class EditBookingView : ViewModel() {
             _editState.value = result.fold(
                 onSuccess = { State.Success(Unit) },
                 onFailure = { State.Error(it.message ?: "Failed to update booking") }
+            )
+        }
+    }
+
+    fun loadBookedSlots(
+        boothName: String,
+        date: String
+    ) {
+        viewModelScope.launch {
+            _bookedSlotsState.value = State.Loading
+
+            val result = bookingService.getBookedSlots(boothName, date)
+
+            _bookedSlotsState.value = result.fold(
+                onSuccess = { State.Success(it) },
+                onFailure = { State.Error(it.message ?: "Failed to load booked slots") }
             )
         }
     }

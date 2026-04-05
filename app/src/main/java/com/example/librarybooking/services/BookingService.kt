@@ -31,6 +31,27 @@ class BookingService {
             val boothDocument = boothQuery.documents.firstOrNull()
                 ?: return Result.failure(Exception("Booth not found"))
 
+            val existingUserBookings = db.collection("bookings")
+                .whereEqualTo("userId", uid)
+                .whereEqualTo("date", date)
+                .get()
+                .await()
+
+            if (!existingUserBookings.isEmpty) {
+                return Result.failure(Exception("You already have a booking on this date"))
+            }
+
+            val existingSlotBookings = db.collection("bookings")
+                .whereEqualTo("boothId", boothDocument.id)
+                .whereEqualTo("date", date)
+                .whereEqualTo("timeSlot", timeSlot)
+                .get()
+                .await()
+
+            if (!existingSlotBookings.isEmpty) {
+                return Result.failure(Exception("This time slot is already booked"))
+            }
+
             val booking = Booking(
                 userId = uid,
                 userName = userData["fullName"] as? String ?: "",
@@ -88,10 +109,45 @@ class BookingService {
 
     suspend fun updateBooking(
         bookingId: String,
+        boothName: String,
         date: String,
         timeSlot: String
     ): Result<Unit> {
         return try {
+            val uid = auth.currentUser?.uid
+                ?: return Result.failure(Exception("User not logged in"))
+
+            val boothQuery = db.collection("booths")
+                .whereEqualTo("name", boothName)
+                .get()
+                .await()
+
+            val boothDocument = boothQuery.documents.firstOrNull()
+                ?: return Result.failure(Exception("Booth not found"))
+
+            val existingUserBookings = db.collection("bookings")
+                .whereEqualTo("userId", uid)
+                .whereEqualTo("date", date)
+                .get()
+                .await()
+
+            val conflictingUserBooking = existingUserBookings.documents.any { it.id != bookingId }
+            if (conflictingUserBooking) {
+                return Result.failure(Exception("You already have a booking on this date"))
+            }
+
+            val existingSlotBookings = db.collection("bookings")
+                .whereEqualTo("boothId", boothDocument.id)
+                .whereEqualTo("date", date)
+                .whereEqualTo("timeSlot", timeSlot)
+                .get()
+                .await()
+
+            val conflictingSlotBooking = existingSlotBookings.documents.any { it.id != bookingId }
+            if (conflictingSlotBooking) {
+                return Result.failure(Exception("This time slot is already booked"))
+            }
+
             db.collection("bookings")
                 .document(bookingId)
                 .update(
@@ -103,6 +159,33 @@ class BookingService {
                 .await()
 
             Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getBookedSlots(
+        boothName: String,
+        date: String
+    ): Result<List<String>> {
+        return try {
+            val boothQuery = db.collection("booths")
+                .whereEqualTo("name", boothName)
+                .get()
+                .await()
+
+            val boothDocument = boothQuery.documents.firstOrNull()
+                ?: return Result.failure(Exception("Booth not found"))
+
+            val snapshot = db.collection("bookings")
+                .whereEqualTo("boothId", boothDocument.id)
+                .whereEqualTo("date", date)
+                .get()
+                .await()
+
+            val bookedSlots = snapshot.documents.mapNotNull { it.getString("timeSlot") }
+
+            Result.success(bookedSlots)
         } catch (e: Exception) {
             Result.failure(e)
         }

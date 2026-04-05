@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.librarybooking.BookingDate
 import com.example.librarybooking.State
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -37,14 +38,9 @@ fun EditBookingScreen(
 ) {
     val editBookingView: EditBookingView = viewModel()
     val editState by editBookingView.editState.collectAsState()
+    val bookedSlotsState by editBookingView.bookedSlotsState.collectAsState()
 
-    val dates = listOf(
-        "2026-04-06",
-        "2026-04-07",
-        "2026-04-08",
-        "2026-04-09",
-        "2026-04-10"
-    )
+    val dates = BookingDate.getAvailableDates()
 
     val slots = listOf(
         "08:30 - 10:30",
@@ -61,6 +57,17 @@ fun EditBookingScreen(
             editBookingView.resetState()
             onBack()
         }
+    }
+
+    LaunchedEffect(selectedDate) {
+        if (selectedDate.isNotBlank()) {
+            editBookingView.loadBookedSlots(boothName, selectedDate)
+        }
+    }
+
+    val bookedSlots: List<String> = when (val state = bookedSlotsState) {
+        is State.Success<List<String>> -> state.data
+        else -> emptyList()
     }
 
     Column(
@@ -97,8 +104,16 @@ fun EditBookingScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             dates.forEach { date ->
-                OutlinedButton(onClick = { selectedDate = date }) {
-                    Text(date)
+                val displayDate = BookingDate.toDisplay(date)
+                val storageDate = BookingDate.toStorage(date)
+
+                OutlinedButton(
+                    onClick = {
+                        selectedDate = storageDate
+                        selectedSlot = ""
+                    }
+                ) {
+                    Text(displayDate)
                 }
             }
         }
@@ -113,7 +128,10 @@ fun EditBookingScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             slots.forEach { slot ->
-                OutlinedButton(onClick = { selectedSlot = slot }) {
+                OutlinedButton(
+                    onClick = { selectedSlot = slot },
+                    enabled = slot !in bookedSlots || slot == currentTimeSlot
+                ) {
                     Text(slot)
                 }
             }
@@ -126,6 +144,7 @@ fun EditBookingScreen(
                 if (selectedDate.isNotBlank() && selectedSlot.isNotBlank()) {
                     editBookingView.updateBooking(
                         bookingId = bookingId,
+                        boothName = boothName,
                         date = selectedDate,
                         timeSlot = selectedSlot
                     )
@@ -147,10 +166,10 @@ fun EditBookingScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        when (editState) {
+        when (val state = editState) {
             is State.Loading -> CircularProgressIndicator()
             is State.Error -> Text(
-                text = (editState as State.Error).message,
+                text = state.message,
                 color = MaterialTheme.colorScheme.error
             )
             else -> Unit
