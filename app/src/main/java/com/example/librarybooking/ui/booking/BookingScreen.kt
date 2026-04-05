@@ -1,8 +1,8 @@
 package com.example.librarybooking.ui.booking
 
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,22 +10,31 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.librarybooking.State
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun BookingScreen(
     boothName: String,
     onBack: () -> Unit
 ) {
+    val bookingView: BookingView = viewModel()
+    val bookingState by bookingView.bookingState.collectAsState()
+
     val dates = listOf(
         "2026-04-06",
         "2026-04-07",
@@ -43,6 +52,13 @@ fun BookingScreen(
 
     var selectedDate by remember { mutableStateOf("") }
     var selectedSlot by remember { mutableStateOf("") }
+
+    LaunchedEffect(bookingState) {
+        if (bookingState is State.Success) {
+            bookingView.resetState()
+            onBack()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -71,7 +87,9 @@ fun BookingScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             dates.forEach { date ->
-                OutlinedButton(onClick = { selectedDate = date }) {
+                OutlinedButton(
+                    onClick = { selectedDate = date }
+                ) {
                     Text(date)
                 }
             }
@@ -87,7 +105,9 @@ fun BookingScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             slots.forEach { slot ->
-                OutlinedButton(onClick = { selectedSlot = slot }) {
+                OutlinedButton(
+                    onClick = { selectedSlot = slot }
+                ) {
                     Text(slot)
                 }
             }
@@ -96,7 +116,15 @@ fun BookingScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { },
+            onClick = {
+                if (selectedDate.isNotBlank() && selectedSlot.isNotBlank()) {
+                    bookingView.createBooking(
+                        boothName = boothName,
+                        date = selectedDate,
+                        timeSlot = selectedSlot
+                    )
+                }
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Confirm Booking")
@@ -109,6 +137,17 @@ fun BookingScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Back")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        when (bookingState) {
+            is State.Loading -> CircularProgressIndicator()
+            is State.Error -> Text(
+                text = (bookingState as State.Error).message,
+                color = MaterialTheme.colorScheme.error
+            )
+            else -> Unit
         }
     }
 }
