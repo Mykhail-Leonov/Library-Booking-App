@@ -48,6 +48,7 @@ fun BookingScreen(
 
     var selectedDate by remember { mutableStateOf("") }
     var selectedSlot by remember { mutableStateOf("") }
+    var localError by remember { mutableStateOf("") }
 
     LaunchedEffect(bookingState) {
         if (bookingState is State.Success) {
@@ -101,6 +102,7 @@ fun BookingScreen(
                     onClick = {
                         selectedDate = storageDate
                         selectedSlot = ""
+                        localError = ""
                     }
                 ) {
                     Text(displayDate)
@@ -119,7 +121,10 @@ fun BookingScreen(
         ) {
             slots.forEach { slot ->
                 OutlinedButton(
-                    onClick = { selectedSlot = slot },
+                    onClick = {
+                        selectedSlot = slot
+                        localError = ""
+                    },
                     enabled = slot !in bookedSlots
                 ) {
                     Text(slot)
@@ -131,12 +136,17 @@ fun BookingScreen(
 
         Button(
             onClick = {
-                if (selectedDate.isNotBlank() && selectedSlot.isNotBlank()) {
-                    bookingView.createBooking(
-                        boothName = boothName,
-                        date = selectedDate,
-                        timeSlot = selectedSlot
-                    )
+                when {
+                    selectedDate.isBlank() -> localError = "Please select a date"
+                    selectedSlot.isBlank() -> localError = "Please select a time slot"
+                    else -> {
+                        localError = ""
+                        bookingView.createBooking(
+                            boothName = boothName,
+                            date = selectedDate,
+                            timeSlot = selectedSlot
+                        )
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -162,6 +172,14 @@ fun BookingScreen(
                 color = MaterialTheme.colorScheme.error
             )
             else -> Unit
+        }
+
+        if (localError.isNotBlank()) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = localError,
+                color = MaterialTheme.colorScheme.error
+            )
         }
     }
 }

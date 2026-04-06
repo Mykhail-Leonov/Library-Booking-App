@@ -33,9 +33,11 @@ fun LoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var localError by remember { mutableStateOf("") }
 
     LaunchedEffect(authState) {
         if (authState is State.Success) {
+            localError = ""
             onLoginSuccess()
         }
     }
@@ -54,7 +56,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Log in with your Student e-mail to manage your booth bookings.",
+            text = "Log in with your student e-mail to manage your booth bookings.",
             style = MaterialTheme.typography.bodyMedium
         )
 
@@ -62,7 +64,10 @@ fun LoginScreen(
 
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = {
+                email = it
+                localError = ""
+            },
             label = { Text("Student Email") },
             modifier = Modifier.fillMaxWidth()
         )
@@ -78,7 +83,10 @@ fun LoginScreen(
 
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = {
+                password = it
+                localError = ""
+            },
             label = { Text("Password") },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth()
@@ -95,8 +103,13 @@ fun LoginScreen(
 
         Button(
             onClick = {
-                if (email.isNotBlank() && password.isNotBlank()) {
-                    onLoginClick(email.trim(), password.trim())
+                when {
+                    email.isBlank() -> localError = "Please enter e-mail"
+                    password.isBlank() -> localError = "Please enter password"
+                    else -> {
+                        localError = ""
+                        onLoginClick(email.trim(), password.trim())
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -119,6 +132,14 @@ fun LoginScreen(
                 color = MaterialTheme.colorScheme.error
             )
             else -> Unit
+        }
+
+        if (localError.isNotBlank()) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = localError,
+                color = MaterialTheme.colorScheme.error
+            )
         }
     }
 }

@@ -35,9 +35,11 @@ fun RegisterScreen(
     var studentId by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var localError by remember { mutableStateOf("") }
 
     LaunchedEffect(authState) {
         if (authState is State.Success) {
+            localError = ""
             onRegisterSuccess()
         }
     }
@@ -64,7 +66,10 @@ fun RegisterScreen(
 
         OutlinedTextField(
             value = fullName,
-            onValueChange = { fullName = it },
+            onValueChange = {
+                fullName = it
+                localError = ""
+            },
             label = { Text("Full Name") },
             modifier = Modifier.fillMaxWidth()
         )
@@ -73,7 +78,10 @@ fun RegisterScreen(
 
         OutlinedTextField(
             value = studentId,
-            onValueChange = { studentId = it },
+            onValueChange = {
+                studentId = it
+                localError = ""
+            },
             label = { Text("Student ID") },
             modifier = Modifier.fillMaxWidth()
         )
@@ -81,7 +89,7 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = "e.g 12345678",
+            text = "e.g. 12345678",
             style = MaterialTheme.typography.bodySmall
         )
 
@@ -89,7 +97,10 @@ fun RegisterScreen(
 
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = {
+                email = it
+                localError = ""
+            },
             label = { Text("Student Email") },
             modifier = Modifier.fillMaxWidth()
         )
@@ -105,7 +116,10 @@ fun RegisterScreen(
 
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = {
+                password = it
+                localError = ""
+            },
             label = { Text("Password") },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth()
@@ -123,17 +137,23 @@ fun RegisterScreen(
         Button(
             onClick = {
                 when {
-                    fullName.isBlank() -> Unit
-                    studentId.length != 8 -> Unit
-                    email.isBlank() -> Unit
-                    !email.endsWith("@bradfordcollege.ac.uk") -> Unit
-                    password.length < 8 -> Unit
-                    else -> onRegisterClick(
-                        fullName.trim(),
-                        studentId.trim(),
-                        email.trim(),
-                        password.trim()
-                    )
+                    fullName.isBlank() -> localError = "Name cannot be empty"
+                    studentId.length != 8 || !studentId.all { it.isDigit() } ->
+                        localError = "Student ID must be exactly 8 digits"
+                    email.isBlank() -> localError = "Email cannot be empty"
+                    !email.endsWith("@bradfordcollege.ac.uk") ->
+                        localError = "Use your Bradford College email"
+                    password.length < 8 ->
+                        localError = "Password must be at least 8 characters"
+                    else -> {
+                        localError = ""
+                        onRegisterClick(
+                            fullName.trim(),
+                            studentId.trim(),
+                            email.trim(),
+                            password.trim()
+                        )
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -156,6 +176,14 @@ fun RegisterScreen(
                 color = MaterialTheme.colorScheme.error
             )
             else -> Unit
+        }
+
+        if (localError.isNotBlank()) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = localError,
+                color = MaterialTheme.colorScheme.error
+            )
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.librarybooking.ui.home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,12 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -25,7 +27,6 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
@@ -36,9 +37,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.librarybooking.R
 import com.example.librarybooking.State
 import com.example.librarybooking.models.Booth
 import kotlinx.coroutines.launch
@@ -86,49 +88,51 @@ fun HomeScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    TextButton(
-                        onClick = { showGuide = !showGuide },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "Guide",
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Start
-                        )
-                    }
+                    NavigationDrawerItem(
+                        label = { Text("Guide") },
+                        selected = false,
+                        onClick = {
+                            showGuide = !showGuide
+                        },
+                        badge = {
+                            Icon(
+                                imageVector = if (showGuide) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                contentDescription = if (showGuide) "Collapse guide" else "Expand guide"
+                            )
+                        }
+                    )
 
                     if (showGuide) {
                         Text(
                             text = "Select a booth, choose a valid date and time slot, and confirm your booking.",
-                            modifier = Modifier.padding(horizontal = 12.dp),
+                            modifier = Modifier.padding(horizontal = 16.dp),
                             style = MaterialTheme.typography.bodySmall
                         )
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    TextButton(
-                        onClick = { showTerms = !showTerms },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "Terms and Conditions",
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Start
-                        )
-                    }
+                    NavigationDrawerItem(
+                        label = { Text("Terms and Conditions") },
+                        selected = false,
+                        onClick = {
+                            showTerms = !showTerms
+                        },
+                        badge = {
+                            Icon(
+                                imageVector = if (showTerms) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                contentDescription = if (showTerms) "Collapse terms" else "Expand terms"
+                            )
+                        }
+                    )
 
                     if (showTerms) {
                         Text(
-                            text = "Only one booking per day is allowed. Bookings must use valid college details. Misuse may lead to booking restrictions.",
-                            modifier = Modifier.padding(horizontal = 12.dp),
+                            text = "Here will be the terms and conditions.",
+                            modifier = Modifier.padding(horizontal = 16.dp),
                             style = MaterialTheme.typography.bodySmall
                         )
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-                    HorizontalDivider()
-                    Spacer(modifier = Modifier.height(8.dp))
 
                     NavigationDrawerItem(
                         label = { Text("Logout") },
@@ -199,6 +203,27 @@ fun HomeScreen(
                                     onClick = { onOpenBooking(booth.name) }
                                 ) {
                                     Column(modifier = Modifier.padding(16.dp)) {
+                                        val imageRes = when (booth.name) {
+                                            "DHB A" -> R.drawable.dhb_a
+                                            "DHB B" -> R.drawable.dhb_b
+                                            "DHB C" -> R.drawable.dhb_c
+                                            "DHB D" -> R.drawable.dhb_d
+                                            "TG 1" -> R.drawable.tg_1
+                                            "TG 2" -> R.drawable.tg_2
+                                            "TG 3" -> R.drawable.tg_3
+                                            else -> R.drawable.error
+                                        }
+
+                                        Image(
+                                            painter = painterResource(id = imageRes),
+                                            contentDescription = booth.name,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(150.dp)
+                                        )
+
+                                        Spacer(modifier = Modifier.height(12.dp))
+
                                         Text(
                                             text = booth.name,
                                             style = MaterialTheme.typography.titleMedium
