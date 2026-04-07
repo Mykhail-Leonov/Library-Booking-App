@@ -20,8 +20,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.librarybooking.Notifications
 import com.example.librarybooking.State
 import com.example.librarybooking.models.Booking
 import com.example.librarybooking.models.User
@@ -31,6 +33,7 @@ fun ProfileScreen(
     onBack: () -> Unit,
     onEditBooking: (String, String, String, String) -> Unit
 ) {
+    val context = LocalContext.current
     val profileView: ProfileView = viewModel()
     val userState by profileView.userState.collectAsState()
 
@@ -40,6 +43,11 @@ fun ProfileScreen(
 
     LaunchedEffect(cancelState) {
         if (cancelState is State.Success) {
+            Notifications.show(
+                context = context,
+                title = "Booking Cancelled",
+                message = "Your booking was successfully cancelled"
+            )
             profileBookingView.resetCancelState()
         }
     }
@@ -62,21 +70,18 @@ fun ProfileScreen(
                 is State.Loading -> {
                     CircularProgressIndicator()
                 }
-
                 is State.Error -> {
                     Text(
                         text = (userState as State.Error).message,
                         color = MaterialTheme.colorScheme.error
                     )
                 }
-
                 is State.Success -> {
                     val user = (userState as State.Success<User>).data
                     Text("Full Name: ${user.fullName}")
                     Text("Student ID: ${user.studentId}")
                     Text("Email: ${user.email}")
                 }
-
                 else -> Unit
             }
 
@@ -96,7 +101,6 @@ fun ProfileScreen(
                     CircularProgressIndicator()
                 }
             }
-
             is State.Error -> {
                 item {
                     Text(
@@ -105,7 +109,6 @@ fun ProfileScreen(
                     )
                 }
             }
-
             is State.Success -> {
                 val bookings = (bookingState as State.Success<List<Booking>>).data
 
@@ -156,7 +159,6 @@ fun ProfileScreen(
                     }
                 }
             }
-
             else -> Unit
         }
 
@@ -165,14 +167,12 @@ fun ProfileScreen(
                 is State.Loading -> {
                     CircularProgressIndicator()
                 }
-
                 is State.Error -> {
                     Text(
                         text = (cancelState as State.Error).message,
                         color = MaterialTheme.colorScheme.error
                     )
                 }
-
                 else -> Unit
             }
 

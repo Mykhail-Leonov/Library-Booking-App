@@ -19,10 +19,25 @@ import com.example.librarybooking.ui.booking.EditBookingScreen
 import com.example.librarybooking.ui.home.HomeScreen
 import com.example.librarybooking.ui.profile.ProfileScreen
 import com.example.librarybooking.ui.theme.LibraryBookingAppTheme
+import android.Manifest
+import android.os.Build
+import androidx.activity.result.contract.ActivityResultContracts
+import com.example.librarybooking.Notifications
 
 class MainActivity : ComponentActivity() {
+
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        Notifications.createChannel(this)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
         setContent {
             LibraryBookingAppTheme {
                 AppNavigation()

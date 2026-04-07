@@ -22,9 +22,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.librarybooking.BookingDate
+import com.example.librarybooking.Notifications
 import com.example.librarybooking.State
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -36,6 +38,7 @@ fun EditBookingScreen(
     currentTimeSlot: String,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     val editBookingView: EditBookingView = viewModel()
     val editState by editBookingView.editState.collectAsState()
     val bookedSlotsState by editBookingView.bookedSlotsState.collectAsState()
@@ -54,6 +57,11 @@ fun EditBookingScreen(
 
     LaunchedEffect(editState) {
         if (editState is State.Success) {
+            Notifications.show(
+                context = context,
+                title = "Booking Updated",
+                message = "$boothName updated to $selectedDate at $selectedSlot"
+            )
             editBookingView.resetState()
             onBack()
         }
@@ -107,13 +115,24 @@ fun EditBookingScreen(
                 val displayDate = BookingDate.toDisplay(date)
                 val storageDate = BookingDate.toStorage(date)
 
-                OutlinedButton(
-                    onClick = {
-                        selectedDate = storageDate
-                        selectedSlot = ""
+                if (selectedDate == storageDate) {
+                    Button(
+                        onClick = {
+                            selectedDate = storageDate
+                            selectedSlot = ""
+                        }
+                    ) {
+                        Text(displayDate)
                     }
-                ) {
-                    Text(displayDate)
+                } else {
+                    OutlinedButton(
+                        onClick = {
+                            selectedDate = storageDate
+                            selectedSlot = ""
+                        }
+                    ) {
+                        Text(displayDate)
+                    }
                 }
             }
         }
@@ -128,11 +147,20 @@ fun EditBookingScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             slots.forEach { slot ->
-                OutlinedButton(
-                    onClick = { selectedSlot = slot },
-                    enabled = slot !in bookedSlots || slot == currentTimeSlot
-                ) {
-                    Text(slot)
+                if (selectedSlot == slot) {
+                    Button(
+                        onClick = { selectedSlot = slot },
+                        enabled = slot !in bookedSlots || slot == currentTimeSlot
+                    ) {
+                        Text(slot)
+                    }
+                } else {
+                    OutlinedButton(
+                        onClick = { selectedSlot = slot },
+                        enabled = slot !in bookedSlots || slot == currentTimeSlot
+                    ) {
+                        Text(slot)
+                    }
                 }
             }
         }

@@ -22,9 +22,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.librarybooking.BookingDate
+import com.example.librarybooking.Notifications
 import com.example.librarybooking.State
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -33,6 +35,7 @@ fun BookingScreen(
     boothName: String,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     val bookingView: BookingView = viewModel()
     val bookingState by bookingView.bookingState.collectAsState()
     val bookedSlotsState by bookingView.bookedSlotsState.collectAsState()
@@ -52,6 +55,11 @@ fun BookingScreen(
 
     LaunchedEffect(bookingState) {
         if (bookingState is State.Success) {
+            Notifications.show(
+                context = context,
+                title = "Booking Confirmed",
+                message = "$boothName booked for $selectedDate at $selectedSlot"
+            )
             bookingView.resetState()
             onBack()
         }
@@ -98,14 +106,26 @@ fun BookingScreen(
                 val displayDate = BookingDate.toDisplay(date)
                 val storageDate = BookingDate.toStorage(date)
 
-                OutlinedButton(
-                    onClick = {
-                        selectedDate = storageDate
-                        selectedSlot = ""
-                        localError = ""
+                if (selectedDate == storageDate) {
+                    Button(
+                        onClick = {
+                            selectedDate = storageDate
+                            selectedSlot = ""
+                            localError = ""
+                        }
+                    ) {
+                        Text(displayDate)
                     }
-                ) {
-                    Text(displayDate)
+                } else {
+                    OutlinedButton(
+                        onClick = {
+                            selectedDate = storageDate
+                            selectedSlot = ""
+                            localError = ""
+                        }
+                    ) {
+                        Text(displayDate)
+                    }
                 }
             }
         }
@@ -120,14 +140,26 @@ fun BookingScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             slots.forEach { slot ->
-                OutlinedButton(
-                    onClick = {
-                        selectedSlot = slot
-                        localError = ""
-                    },
-                    enabled = slot !in bookedSlots
-                ) {
-                    Text(slot)
+                if (selectedSlot == slot) {
+                    Button(
+                        onClick = {
+                            selectedSlot = slot
+                            localError = ""
+                        },
+                        enabled = slot !in bookedSlots
+                    ) {
+                        Text(slot)
+                    }
+                } else {
+                    OutlinedButton(
+                        onClick = {
+                            selectedSlot = slot
+                            localError = ""
+                        },
+                        enabled = slot !in bookedSlots
+                    ) {
+                        Text(slot)
+                    }
                 }
             }
         }
