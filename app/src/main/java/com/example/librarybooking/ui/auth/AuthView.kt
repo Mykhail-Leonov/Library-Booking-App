@@ -32,6 +32,7 @@ class AuthView : ViewModel() {
         }
     }
 
+
     fun register(
         fullName: String,
         studentId: String,
@@ -59,6 +60,7 @@ class AuthView : ViewModel() {
         auth.logout()
         _authState.value = State.Idle
     }
+
 
     fun resetState() {
         _authState.value = State.Idle

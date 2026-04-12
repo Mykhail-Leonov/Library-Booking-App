@@ -23,6 +23,7 @@ class BookingView : ViewModel() {
         date: String,
         timeSlot: String
     ) {
+
         viewModelScope.launch {
             _bookingState.value = State.Loading
 

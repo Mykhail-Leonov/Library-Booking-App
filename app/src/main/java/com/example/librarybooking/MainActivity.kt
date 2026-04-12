@@ -46,6 +46,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -113,6 +114,7 @@ fun AppNavigation() {
             )
         }
 
+
         composable("booking/{boothName}") { backStackEntry ->
             val boothName = backStackEntry.arguments?.getString("boothName") ?: ""
             BookingScreen(
@@ -135,7 +137,6 @@ fun AppNavigation() {
                 }
             )
         }
-
         composable("edit_booking/{bookingId}/{boothName}/{date}/{timeSlot}") { backStackEntry ->
             val bookingId = backStackEntry.arguments?.getString("bookingId") ?: ""
             val boothName = backStackEntry.arguments?.getString("boothName") ?: ""

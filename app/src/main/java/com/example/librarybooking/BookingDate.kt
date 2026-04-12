@@ -10,6 +10,7 @@ object BookingDate {
     private val storageFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     private val displayFormatter = DateTimeFormatter.ofPattern("EEEE dd/MM/yyyy", Locale.ENGLISH)
 
+
     fun getAvailableDates(count: Int = 5): List<LocalDate> {
         val dates = mutableListOf<LocalDate>()
         var current = LocalDate.now()

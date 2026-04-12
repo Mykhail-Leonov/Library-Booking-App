@@ -45,12 +45,14 @@ fun EditBookingScreen(
 
     val dates = BookingDate.getAvailableDates()
 
+
     val slots = listOf(
         "08:30 - 10:30",
         "10:30 - 12:30",
         "12:30 - 14:30",
         "14:30 - 16:30"
     )
+
 
     var selectedDate by remember { mutableStateOf(currentDate) }
     var selectedSlot by remember { mutableStateOf(currentTimeSlot) }
@@ -77,6 +79,7 @@ fun EditBookingScreen(
         is State.Success<List<String>> -> state.data
         else -> emptyList()
     }
+
 
     Column(
         modifier = Modifier

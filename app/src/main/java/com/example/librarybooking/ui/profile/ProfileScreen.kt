@@ -52,6 +52,7 @@ fun ProfileScreen(
         }
     }
 
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -177,6 +178,7 @@ fun ProfileScreen(
             }
 
             Spacer(modifier = Modifier.height(8.dp))
+
 
             OutlinedButton(
                 onClick = onBack,

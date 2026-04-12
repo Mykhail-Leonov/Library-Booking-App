@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+
 class ProfileBookingView : ViewModel() {
 
     private val bookingService = BookingService()
@@ -35,6 +36,7 @@ class ProfileBookingView : ViewModel() {
             )
         }
     }
+
 
     fun cancelBooking(bookingId: String) {
         viewModelScope.launch {

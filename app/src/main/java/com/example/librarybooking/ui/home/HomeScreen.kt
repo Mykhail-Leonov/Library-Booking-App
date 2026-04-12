@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
@@ -20,7 +19,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
@@ -41,8 +39,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.librarybooking.R
+import androidx.compose.material3.IconButton
 import com.example.librarybooking.State
 import com.example.librarybooking.models.Booth
+import androidx.compose.foundation.lazy.LazyColumn
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -51,6 +51,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,10 +62,8 @@ fun HomeScreen(
 ) {
     val homeView: HomeView = viewModel()
     val boothState by homeView.boothState.collectAsState()
-
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-
     var showGuide by remember { mutableStateOf(false) }
     var showTerms by remember { mutableStateOf(false) }
 
@@ -131,6 +130,7 @@ fun HomeScreen(
                                     }
                                 }
 
+
                                 header("How to Book Your Booth\n\n")
 
                                 bold("1.")
@@ -171,6 +171,7 @@ fun HomeScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                     }
+
 
                     NavigationDrawerItem(
                         label = { Text("Terms and Conditions") },
@@ -364,6 +365,7 @@ fun HomeScreen(
                                     modifier = Modifier.fillMaxWidth(),
                                     onClick = { onOpenBooking(booth.name) }
                                 ) {
+
                                     Column(modifier = Modifier.padding(16.dp)) {
                                         val imageRes = when (booth.name) {
                                             "DHB A" -> R.drawable.dhb_a
@@ -374,6 +376,7 @@ fun HomeScreen(
                                             "TG 2" -> R.drawable.tg_2
                                             "TG 3" -> R.drawable.tg_3
                                             else -> R.drawable.error
+
                                         }
 
                                         Image(
