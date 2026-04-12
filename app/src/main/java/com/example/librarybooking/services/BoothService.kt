@@ -21,4 +21,6 @@ class BoothService {
             Result.failure(e)
         }
     }
+
+
 }

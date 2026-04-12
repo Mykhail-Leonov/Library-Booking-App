@@ -20,12 +20,13 @@ class Auth {
 
     suspend fun login(email: String, password: String): Result<Unit> {
         return try {
-            auth.signInWithEmailAndPassword(email, password).await()
+            auth.signInWithEmailAndPassword(email.trim(), password).await()
             Result.success(Unit)
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception("Login failed. Please check credentials."))
         }
     }
+
 
     suspend fun register(
         fullName: String,
@@ -34,27 +35,32 @@ class Auth {
         password: String
     ): Result<Unit> {
         return try {
-            val authResult = auth.createUserWithEmailAndPassword(email, password).await()
+            val authResult = auth.createUserWithEmailAndPassword(email.trim(), password).await()
             val uid = authResult.user?.uid ?: return Result.failure(Exception("User ID not found"))
 
             val user = User(
                 uid = uid,
-                fullName = fullName,
-                studentId = studentId,
-                email = email,
+                fullName = fullName.trim(),
+                studentId = studentId.trim(),
+                email = email.trim(),
                 role = "student"
             )
 
-            db.collection("users")
-                .document(uid)
-                .set(user)
-                .await()
 
-            Result.success(Unit)
+            try {
+                db.collection("users").document(uid).set(user).await()
+                Result.success(Unit)
+            } catch (dbError: Exception) {
+
+                authResult.user?.delete()?.await()
+                Result.failure(Exception("Could not set up profile. Please try again."))
+            }
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception("Registration failed: ${e.localizedMessage}"))
         }
     }
+
+
 
     suspend fun getCurrentUserProfile(): User? {
         val uid = auth.currentUser?.uid ?: return null

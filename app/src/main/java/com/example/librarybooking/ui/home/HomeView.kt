@@ -20,6 +20,7 @@ class HomeView : ViewModel() {
         loadBooths()
     }
 
+
     fun loadBooths() {
         viewModelScope.launch {
             _boothState.value = State.Loading

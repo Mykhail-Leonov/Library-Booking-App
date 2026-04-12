@@ -18,6 +18,7 @@ class EditBookingView : ViewModel() {
     private val _bookedSlotsState = MutableStateFlow<State<List<String>>>(State.Idle)
     val bookedSlotsState: StateFlow<State<List<String>>> = _bookedSlotsState
 
+
     fun updateBooking(
         bookingId: String,
         boothName: String,
@@ -40,7 +41,6 @@ class EditBookingView : ViewModel() {
             )
         }
     }
-
     fun loadBookedSlots(
         boothName: String,
         date: String

@@ -49,6 +49,7 @@ fun BookingScreen(
         "14:30 - 16:30"
     )
 
+
     var selectedDate by remember { mutableStateOf("") }
     var selectedSlot by remember { mutableStateOf("") }
     var localError by remember { mutableStateOf("") }
@@ -128,6 +129,7 @@ fun BookingScreen(
                     }
                 }
             }
+
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -163,6 +165,7 @@ fun BookingScreen(
                 }
             }
         }
+
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -213,5 +216,6 @@ fun BookingScreen(
                 color = MaterialTheme.colorScheme.error
             )
         }
+
     }
 }

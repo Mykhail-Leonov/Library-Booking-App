@@ -12,7 +12,6 @@ import kotlinx.coroutines.launch
 class ProfileView : ViewModel() {
 
     private val auth = Auth()
-
     private val _userState = MutableStateFlow<State<User>>(State.Loading)
     val userState: StateFlow<State<User>> = _userState
 

@@ -125,6 +125,7 @@ fun RegisterScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
+
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
@@ -168,6 +169,7 @@ fun RegisterScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
 
         when (authState) {
             is State.Loading -> CircularProgressIndicator()

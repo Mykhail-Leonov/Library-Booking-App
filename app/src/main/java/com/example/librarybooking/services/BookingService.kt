@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
+
 class BookingService {
 
     private val auth = FirebaseAuth.getInstance()
@@ -24,12 +25,15 @@ class BookingService {
                 ?: return Result.failure(Exception("User profile not found"))
 
             val boothQuery = db.collection("booths")
-                .whereEqualTo("name", boothName)
+                .whereEqualTo("name", boothName.trim())
                 .get()
                 .await()
 
             val boothDocument = boothQuery.documents.firstOrNull()
                 ?: return Result.failure(Exception("Booth not found"))
+
+
+
 
             val existingUserBookings = db.collection("bookings")
                 .whereEqualTo("userId", uid)
@@ -41,16 +45,17 @@ class BookingService {
                 return Result.failure(Exception("You already have a booking on this date"))
             }
 
-            val existingSlotBookings = db.collection("bookings")
+
+            val finalSlotCheck = db.collection("bookings")
                 .whereEqualTo("boothId", boothDocument.id)
                 .whereEqualTo("date", date)
                 .whereEqualTo("timeSlot", timeSlot)
-                .get()
-                .await()
+                .get().await()
 
-            if (!existingSlotBookings.isEmpty) {
-                return Result.failure(Exception("This time slot is already booked"))
+            if (!finalSlotCheck.isEmpty) {
+                return Result.failure(Exception("This slot was just taken by another student!"))
             }
+
 
             val booking = Booking(
                 userId = uid,
@@ -70,9 +75,10 @@ class BookingService {
 
             Result.success(Unit)
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception("Booking failed. Please try again."))
         }
     }
+
 
     suspend fun getCurrentUserBookings(): Result<List<Booking>> {
         return try {
@@ -94,16 +100,23 @@ class BookingService {
         }
     }
 
+
     suspend fun cancelBooking(bookingId: String): Result<Unit> {
         return try {
-            db.collection("bookings")
-                .document(bookingId)
-                .delete()
-                .await()
+            val uid = auth.currentUser?.uid ?: return Result.failure(Exception("Unauthorized"))
 
+
+            val doc = db.collection("bookings").document(bookingId).get().await()
+
+
+            if (doc.getString("userId") != uid) {
+                return Result.failure(Exception("Security Error: You can only cancel your own bookings."))
+            }
+
+            doc.reference.delete().await()
             Result.success(Unit)
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception("Cancellation failed. Please try again."))
         }
     }
 
@@ -117,8 +130,15 @@ class BookingService {
             val uid = auth.currentUser?.uid
                 ?: return Result.failure(Exception("User not logged in"))
 
+            val doc = db.collection("bookings").document(bookingId).get().await()
+
+
+            if (doc.getString("userId") != uid) {
+                return Result.failure(Exception("Unauthorized: You can only edit your own bookings."))
+            }
+
             val boothQuery = db.collection("booths")
-                .whereEqualTo("name", boothName)
+                .whereEqualTo("name", boothName.trim())
                 .get()
                 .await()
 
@@ -145,11 +165,14 @@ class BookingService {
 
             val conflictingSlotBooking = existingSlotBookings.documents.any { it.id != bookingId }
             if (conflictingSlotBooking) {
-                return Result.failure(Exception("This time slot is already booked"))
+                return Result.failure(Exception("This slot is already booked"))
             }
+
 
             db.collection("bookings")
                 .document(bookingId)
+
+
                 .update(
                     mapOf(
                         "date" to date,
@@ -170,7 +193,7 @@ class BookingService {
     ): Result<List<String>> {
         return try {
             val boothQuery = db.collection("booths")
-                .whereEqualTo("name", boothName)
+                .whereEqualTo("name", boothName.trim())
                 .get()
                 .await()
 
@@ -184,6 +207,7 @@ class BookingService {
                 .await()
 
             val bookedSlots = snapshot.documents.mapNotNull { it.getString("timeSlot") }
+
 
             Result.success(bookedSlots)
         } catch (e: Exception) {

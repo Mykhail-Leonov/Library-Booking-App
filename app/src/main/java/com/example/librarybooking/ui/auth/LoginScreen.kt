@@ -42,6 +42,7 @@ fun LoginScreen(
         }
     }
 
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -72,6 +73,7 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
+
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
@@ -80,6 +82,7 @@ fun LoginScreen(
         )
 
         Spacer(modifier = Modifier.height(12.dp))
+
 
         OutlinedTextField(
             value = password,
@@ -133,6 +136,7 @@ fun LoginScreen(
             )
             else -> Unit
         }
+
 
         if (localError.isNotBlank()) {
             Spacer(modifier = Modifier.height(8.dp))
