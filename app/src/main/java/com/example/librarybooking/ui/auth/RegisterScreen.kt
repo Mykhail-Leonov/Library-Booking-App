@@ -144,6 +144,9 @@ fun RegisterScreen(
                     email.isBlank() -> localError = "Email cannot be empty"
                     !email.endsWith("@bradfordcollege.ac.uk") ->
                         localError = "Use your Bradford College email"
+
+                    !email.startsWith(studentId) ->
+                        localError = "Email must start with your Student ID: $studentId"
                     password.length < 8 ->
                         localError = "Password must be at least 8 characters"
                     else -> {
